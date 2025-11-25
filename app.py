@@ -1,40 +1,72 @@
 from flask import Flask, render_template, request, jsonify
 import subprocess
-import traceback
+import tempfile
 import os
+import traceback
 
 app = Flask(__name__)
 
+# полный путь к CLIPSDOS
 CLIPS_PATH = r"C:\Program Files\CLIPS 6.4\CLIPSDOS.exe"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 @app.route("/")
 def index():
     return render_template("index.html")
 
+
 @app.route("/run", methods=["POST"])
 def run_clips():
     try:
+        print("\n========== ЗАПРОС ПОЛУЧЕН ==========\n")
+
         data = request.json
+        print("ДАННЫЕ ОТ КЛИЕНТА:", data)
 
-        clips_code = f"""
-(load "{os.path.join(BASE_DIR, 'music_recs.clp')}")
-(reset)
-(assert (user_activity (value {data["activity"]})))
-(assert (user_popularity (value {data["popularity"]})))
-(assert (user_mood (value {data["mood"]})))
-(assert (user_language (value {data["language"]})))
-(assert (state ready))
-(run)
-"""
+        # создаём временный CLP
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".clp", mode="w", encoding="utf8") as clp:
+            clp_path = clp.name
 
+            print("Создан CLP:", clp_path)
+
+            clp.write(f'(load "{os.path.join(BASE_DIR, "music_recs.clp")}")\n')
+            clp.write("(reset)\n")
+            clp.write(f'(assert (user_activity (value {data["activity"]})))\n')
+            clp.write(f'(assert (user_popularity (value {data["popularity"]})))\n')
+            clp.write(f'(assert (user_mood (value {data["mood"]})))\n')
+            clp.write(f'(assert (user_language (value {data["language"]})))\n')
+            clp.write("(assert (state ready))\n")
+            clp.write("(run)\n")
+
+        print("CLP файл успешно записан")
+
+        # создаём BAT
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".bat", mode="w", encoding="utf8") as bat:
+            bat_path = bat.name
+            bat.write(f'"{CLIPS_PATH}" -f "{clp_path}"\n')
+
+        print("Создан BAT:", bat_path)
+        print("BAT файл успешно записан")
+        print("\n--- Запускаем BAT через cmd.exe ---\n")
+
+        # самое важное!!! запускаем через CMD
         result = subprocess.run(
-            [CLIPS_PATH],
-            input=clips_code,
-            text=True,
-            capture_output=True
+            ["cmd.exe", "/c", bat_path],
+            capture_output=True,
+            text=True
         )
 
+        print("=== РЕЗУЛЬТАТ ВЫПОЛНЕНИЯ ===")
+        print("STDOUT:", result.stdout)
+        print("STDERR:", result.stderr)
+        print("RETURN CODE:", result.returncode)
+
+        # удаляем временные файлы
+        os.remove(clp_path)
+        os.remove(bat_path)
+
+        # ошибка CLIPS
         if result.stderr.strip():
             return jsonify({
                 "output": "ОШИБКА",
@@ -45,11 +77,13 @@ def run_clips():
         return jsonify({"output": result.stdout})
 
     except Exception as e:
+        print("ОШИБКА PYTHON:", e)
         return jsonify({
             "output": "ОШИБКА PYTHON",
             "error": str(e),
             "trace": traceback.format_exc()
         })
+
 
 if __name__ == "__main__":
     app.run(debug=True)
