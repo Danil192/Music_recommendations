@@ -6,7 +6,7 @@ import traceback
 
 app = Flask(__name__)
 
-# полный путь к CLIPSDOS
+# путь к CLIPSDOS.exe
 CLIPS_PATH = r"C:\Program Files\CLIPS 6.4\CLIPSDOS.exe"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -24,7 +24,7 @@ def run_clips():
         data = request.json
         print("ДАННЫЕ ОТ КЛИЕНТА:", data)
 
-        # создаём временный CLP
+        # создаём временный CLP файл
         with tempfile.NamedTemporaryFile(delete=False, suffix=".clp", mode="w", encoding="utf8") as clp:
             clp_path = clp.name
 
@@ -41,18 +41,13 @@ def run_clips():
 
         print("CLP файл успешно записан")
 
-        # создаём BAT
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".bat", mode="w", encoding="utf8") as bat:
-            bat_path = bat.name
-            bat.write(f'"{CLIPS_PATH}" -f "{clp_path}"\n')
+        # формируем команду
+        cmd = f'"{CLIPS_PATH}" < "{clp_path}"'
+        print("Команда запуска CLIPS:", cmd)
 
-        print("Создан BAT:", bat_path)
-        print("BAT файл успешно записан")
-        print("\n--- Запускаем BAT через cmd.exe ---\n")
-
-        # самое важное!!! запускаем через CMD
+        # запускаем CLIPS через stdin, это 100 процентов работает
         result = subprocess.run(
-            ["cmd.exe", "/c", bat_path],
+            ["cmd.exe", "/c", cmd],
             capture_output=True,
             text=True
         )
@@ -62,14 +57,12 @@ def run_clips():
         print("STDERR:", result.stderr)
         print("RETURN CODE:", result.returncode)
 
-        # удаляем временные файлы
+        # удаляем временный CLP файл
         os.remove(clp_path)
-        os.remove(bat_path)
 
-        # ошибка CLIPS
         if result.stderr.strip():
             return jsonify({
-                "output": "ОШИБКА",
+                "output": "ОШИБКА CLIPS",
                 "error": result.stderr,
                 "code": result.stdout
             })
