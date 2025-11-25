@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <title>Музыкальные рекомендации</title>
@@ -10,19 +10,22 @@
 
     <style>
         body {
-            background-color: #111;
-            color: #eee;
+            background: #0e0e0e;
+            color: white;
+        }
+        .card {
+            background: #1c1c1c;
+            border: 1px solid #333;
         }
         #output {
-            white-space: pre-wrap;
-            font-family: Consolas, monospace;
-            background: #000;
-            padding: 15px;
-            border-radius: 10px;
-            color: #0f0;
-        }
-        .error {
-            color: #f33;
+            background: black;
+            color: #e2e2e2;
+            white-space: pre-line;
+            padding: 20px;
+            border-radius: 8px;
+            font-size: 18px;
+            border: 1px solid #222;
+            margin-bottom: 50px;
         }
     </style>
 </head>
@@ -31,9 +34,11 @@
 
 <div class="container mt-5">
 
-    <h1 class="text-center mb-4">Музыкальные рекомендации</h1>
+    <h1 class="text-center mb-4" style="font-size:40px">
+        Музыкальные рекомендации
+    </h1>
 
-    <div class="card p-4 bg-dark text-light border-secondary">
+    <div class="card p-4">
 
         <div class="mb-3">
             <label class="form-label">Чем ты занимаешься</label>
@@ -74,14 +79,56 @@
 
     </div>
 
-    <h3 class="mt-4">Вывод:</h3>
-    <pre id="output"></pre>
+    <h2 class="mt-4">Вывод:</h2>
+    <div id="output"></div>
 
 </div>
 
 
 <script>
+
+// форматор результата
+function formatOutput(text) {
+    if (!text) return "Пустой вывод";
+
+    text = text.replace(/CLIPS>*/g, "");
+    text = text.replace(/\r/g, "");
+
+    let out = "";
+
+    // рекомендации
+    if (text.includes("Музыкальные рекомендации")) {
+        out += "🎵 Рекомендации\n\n";
+        let recs = text.match(/\* .*?,.*?,.*?/g);
+        if (recs) recs.forEach(r => out += r + "\n");
+        out += "\n";
+    }
+
+    // комментарии
+    if (text.includes("Комментарии")) {
+        out += "📝 Комментарии\n\n";
+        let cMatches = text.split("Комментарии")[1].match(/\* .*/g);
+        if (cMatches) cMatches.forEach(c => out += c + "\n");
+        out += "\n";
+    }
+
+    // цепочка правил
+    if (text.includes("Цепочка правил")) {
+        out += "⚙️ Цепочка правил\n\n";
+        let lMatches = text.split("Цепочка правил")[1].match(/\* .*/g);
+        if (lMatches) lMatches.forEach(l => out += l + "\n");
+    }
+
+    return out;
+}
+
+
+// запуск CLIPS
 function runClips() {
+
+    document.getElementById("output").innerHTML =
+        "<span style='color:#00ff00'>Загрузка, подожди салага...</span>";
+
     let data = {
         activity: document.getElementById("activity").value,
         popularity: document.getElementById("popularity").value,
@@ -89,29 +136,28 @@ function runClips() {
         language: document.getElementById("language").value
     };
 
-    document.getElementById("output").innerText = "Загрузка, подожди салага...";
-
     fetch("/run", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(data)
     })
-    .then(r => r.json())
-    .then(d => {
-        if (d.error) {
+        .then(r => r.json())
+        .then(d => {
+            if (d.output === "ОШИБКА" || 
+                d.output === "ОШИБКА PYTHON" || 
+                d.output === "ОШИБКА CLIPSIDE") {
+
+                document.getElementById("output").innerHTML =
+                    "<span style='color:red'>ОШИБКА</span>\n\n" +
+                    d.error + "\n\n=== RAW ===\n" +
+                    (d.code || "");
+
+                return;
+            }
+
             document.getElementById("output").innerHTML =
-                "<span class='error'>ОШИБКА</span>\n\n" + 
-                d.error + 
-                "\n\n=== ВЫВОД CLIPS ===\n" + 
-                (d.code || "");
-        } else {
-            document.getElementById("output").innerText = d.output;
-        }
-    })
-    .catch(err => {
-        document.getElementById("output").innerHTML =
-            "<span class='error'>ОШИБКА</span>\n\n" + err;
-    });
+                formatOutput(d.output);
+        });
 }
 </script>
 
