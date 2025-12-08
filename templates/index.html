@@ -12,122 +12,299 @@
         body {
             background: #0e0e0e;
             color: white;
+            min-height: 100vh;
         }
         .card {
             background: #1c1c1c;
             border: 1px solid #333;
+            height: 100%;
+        }
+        .form-card {
+            background: #1c1c1c;
+            border: 1px solid #333;
+            padding: 25px;
+            border-radius: 10px;
+        }
+        .results-card {
+            background: #1c1c1c;
+            border: 1px solid #333;
+            padding: 25px;
+            border-radius: 10px;
+            min-height: 500px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .comments-card {
+            background: #1c1c1c;
+            border: 1px solid #333;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
         }
         #output {
-            background: black;
+            background: transparent;
             color: #e2e2e2;
             white-space: pre-line;
-            padding: 20px;
-            border-radius: 8px;
+            font-size: 16px;
+        }
+        #comments {
+            background: transparent;
+            color: #e2e2e2;
+            white-space: pre-line;
+            font-size: 16px;
+        }
+        .form-select {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            color: white;
+        }
+        .form-select:focus {
+            background: #2a2a2a;
+            border-color: #ffc107;
+            color: white;
+        }
+        .btn-warning {
+            font-weight: bold;
+            padding: 12px;
+            font-size: 16px;
+        }
+        .recommendation-item {
+            background: #2a2a2a;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+        .recommendation-item h5 {
+            color: #ffc107;
+            margin-bottom: 8px;
+        }
+        .match-percent {
             font-size: 18px;
-            border: 1px solid #222;
-            margin-bottom: 50px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        .reason-text {
+            color: #bbb;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1c1c1c;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
         }
     </style>
 </head>
 
 <body>
 
-<div class="container mt-5">
+<div class="container mt-4">
 
-    <h1 class="text-center mb-4" style="font-size:40px">
-        Музыкальные рекомендации
+    <h1 class="text-center mb-4" style="font-size:40px; color: #ffc107;">
+        🎵 Музыкальные рекомендации
     </h1>
 
-    <div class="card p-4">
+    <!-- Основной контент: форма и результаты в две колонки -->
+    <div class="row">
+        <!-- Левая колонка: Форма -->
+        <div class="col-md-5 mb-4">
+            <div class="form-card">
+                <h3 class="mb-4" style="color: #ffc107;">Настройки</h3>
 
-        <div class="mb-3">
-            <label class="form-label">Чем ты занимаешься</label>
-            <select id="activity" class="form-select">
-                <option value="work">Работаю</option>
-                <option value="train">Тренируюсь</option>
-                <option value="sleep">Засыпаю</option>
-            </select>
+                <div class="mb-3">
+                    <label class="form-label" style="color: white; font-weight: 500;">Чем ты занимаешься</label>
+                    <select id="activity" class="form-select">
+                        <option value="work">Работаю</option>
+                        <option value="train">Тренируюсь</option>
+                        <option value="sleep">Засыпаю</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" style="color: white; font-weight: 500;">Популярность</label>
+                    <select id="popularity" class="form-select">
+                        <option value="popular">Популярное</option>
+                        <option value="unpopular">Непопулярное</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" style="color: white; font-weight: 500;">Настроение</label>
+                    <select id="mood" class="form-select">
+                        <option value="energetic">Бодрое</option>
+                        <option value="calm">Спокойное</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label" style="color: white; font-weight: 500;">Язык</label>
+                    <select id="language" class="form-select">
+                        <option value="russian">Русское</option>
+                        <option value="foreign">Иностранное</option>
+                    </select>
+                </div>
+
+                <button onclick="runClips()" class="btn btn-warning w-100">
+                    🎯 Получить рекомендации
+                </button>
+            </div>
         </div>
 
-        <div class="mb-3">
-            <label class="form-label">Популярность</label>
-            <select id="popularity" class="form-select">
-                <option value="popular">Популярное</option>
-                <option value="unpopular">Непопулярное</option>
-            </select>
+        <!-- Правая колонка: Рекомендации -->
+        <div class="col-md-7 mb-4">
+            <div class="results-card">
+                <h3 class="mb-4" style="color: #ffc107;">Рекомендации</h3>
+                <div id="output">
+                    <p class="text-center mt-5" style="color: white;">Выберите параметры и нажмите "Получить рекомендации"</p>
+                </div>
+            </div>
         </div>
-
-        <div class="mb-3">
-            <label class="form-label">Настроение</label>
-            <select id="mood" class="form-select">
-                <option value="energetic">Бодрое</option>
-                <option value="calm">Спокойное</option>
-            </select>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Язык</label>
-            <select id="language" class="form-select">
-                <option value="russian">Русское</option>
-                <option value="foreign">Иностранное</option>
-            </select>
-        </div>
-
-        <button onclick="runClips()" class="btn btn-warning w-100">
-            Получить рекомендации
-        </button>
-
     </div>
 
-    <h2 class="mt-4">Вывод:</h2>
-    <div id="output"></div>
+    <!-- Комментарии внизу на всю ширину -->
+    <div class="row">
+        <div class="col-12">
+            <div class="comments-card">
+                <h3 class="mb-3" style="color: #ffc107;">Комментарии</h3>
+                <div id="comments">
+                    <p style="color: white;">Комментарии появятся после получения рекомендаций</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Цепочка правил внизу на всю ширину -->
+    <div class="row">
+        <div class="col-12">
+            <div class="comments-card" style="margin-top: 20px;">
+                <h3 class="mb-3" style="color: #ffc107;">⚙️ Цепочка правил</h3>
+                <div id="rules-chain" style="max-height: 300px; overflow-y: auto;">
+                    <p style="color: white;">Цепочка правил появится после получения рекомендаций</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
 </div>
 
 
 <script>
 
-// форматор результата
-function formatOutput(text) {
-    if (!text) return "Пустой вывод";
-
-    text = text.replace(/CLIPS>*/g, "");
-    text = text.replace(/\r/g, "");
-
-    let out = "";
-
-    // рекомендации
-    if (text.includes("Музыкальные рекомендации")) {
-        out += "🎵 Рекомендации\n\n";
-        let recs = text.match(/\* .*?,.*?,.*?/g);
-        if (recs) recs.forEach(r => out += r + "\n");
-        out += "\n";
+// Форматирование рекомендаций
+function formatRecommendations(text) {
+    if (!text || !text.includes("Музыкальные рекомендации")) {
+        return "<p class='text-muted text-center mt-5'>Рекомендации не найдены</p>";
     }
 
-    // комментарии
-    if (text.includes("Комментарии")) {
-        out += "📝 Комментарии\n\n";
-        let cMatches = text.split("Комментарии")[1].match(/\* .*/g);
-        if (cMatches) cMatches.forEach(c => out += c + "\n");
-        out += "\n";
+    let html = "";
+    // Ищем строки с рекомендациями (формат: "1. Название - Артист (XX% совпадение)")
+    let recs = text.match(/\d+\. .*? \(.*?% совпадение\)/g);
+    
+    if (recs && recs.length > 0) {
+        recs.forEach((r, index) => {
+            // Извлекаем название, артиста и процент
+            let match = r.match(/(\d+)\. (.+?) - (.+?) \((\d+)% совпадение\)/);
+            if (match) {
+                let num = match[1];
+                let trackName = match[2];
+                let artist = match[3];
+                let percent = match[4];
+                
+                // Ищем причину
+                let reasonText = "";
+                let reasonMatch = text.substring(text.indexOf(r) + r.length).match(/   Причина: (.+)/);
+                if (reasonMatch) {
+                    reasonText = reasonMatch[1];
+                }
+                
+                html += `
+                    <div class="recommendation-item">
+                        <h5>${num}. ${trackName} - ${artist}</h5>
+                        <div class="match-percent">${percent}% совпадение</div>
+                        <div class="reason-text">${reasonText}</div>
+                    </div>
+                `;
+            }
+        });
+    } else {
+        html = "<p class='text-muted text-center mt-5'>Рекомендации не найдены</p>";
     }
-
-    // цепочка правил
-    if (text.includes("Цепочка правил")) {
-        out += "⚙️ Цепочка правил\n\n";
-        let lMatches = text.split("Цепочка правил")[1].match(/\* .*/g);
-        if (lMatches) lMatches.forEach(l => out += l + "\n");
-    }
-
-    return out;
+    
+    return html;
 }
 
+// Форматирование комментариев
+function formatComments(text) {
+    if (!text || !text.includes("Комментарии")) {
+        return "<p style='color: white;'>Комментарии отсутствуют</p>";
+    }
 
-// запуск CLIPS
+    let html = "";
+    let commentsSection = text.split("Комментарии")[1];
+    // Берем только комментарии, до раздела "Цепочка правил"
+    if (commentsSection.includes("Цепочка правил")) {
+        commentsSection = commentsSection.split("Цепочка правил")[0];
+    }
+    
+    let cMatches = commentsSection.match(/\* .*/g);
+    if (cMatches && cMatches.length > 0) {
+        cMatches.forEach(c => {
+            let commentText = c.replace(/^\* /, "");
+            html += `<p style="margin-bottom: 10px; color: white;">• ${commentText}</p>`;
+        });
+    } else {
+        html = "<p style='color: white;'>Комментарии отсутствуют</p>";
+    }
+    
+    return html;
+}
+
+// Форматирование цепочки правил
+function formatRulesChain(text) {
+    if (!text || !text.includes("Цепочка правил")) {
+        return "<p style='color: white;'>Цепочка правил отсутствует</p>";
+    }
+
+    let html = "";
+    let rulesSection = text.split("Цепочка правил")[1];
+    
+    let lMatches = rulesSection.match(/\* .*/g);
+    if (lMatches && lMatches.length > 0) {
+        lMatches.forEach(l => {
+            let ruleText = l.replace(/^\* /, "");
+            // Разделяем правило и текст
+            let parts = ruleText.split(" : ");
+            if (parts.length === 2) {
+                html += `<p style="margin-bottom: 8px; color: white;"><strong style="color: #ffc107;">${parts[0]}</strong> : ${parts[1]}</p>`;
+            } else {
+                html += `<p style="margin-bottom: 8px; color: white;">${ruleText}</p>`;
+            }
+        });
+    } else {
+        html = "<p style='color: white;'>Цепочка правил отсутствует</p>";
+    }
+    
+    return html;
+}
+
+// Запуск системы рекомендаций
 function runClips() {
-
+    // Показываем загрузку
     document.getElementById("output").innerHTML =
-        "<span style='color:#00ff00'>Загрузка, подожди салага...</span>";
+        "<div class='text-center mt-5'><span style='color:#00ff00'>⏳ Загрузка...</span></div>";
+    document.getElementById("comments").innerHTML =
+        "<p style='color: white;'>Обработка...</p>";
+    document.getElementById("rules-chain").innerHTML =
+        "<p style='color: white;'>Обработка...</p>";
 
     let data = {
         activity: document.getElementById("activity").value,
@@ -148,15 +325,28 @@ function runClips() {
                 d.output === "ОШИБКА CLIPSIDE") {
 
                 document.getElementById("output").innerHTML =
-                    "<span style='color:red'>ОШИБКА</span>\n\n" +
-                    d.error + "\n\n=== RAW ===\n" +
-                    (d.code || "");
+                    "<div class='alert alert-danger'><strong>ОШИБКА</strong><br>" +
+                    d.error + "</div>";
+
+                document.getElementById("comments").innerHTML =
+                    "<p style='color: white;'>Ошибка при получении комментариев</p>";
+                document.getElementById("rules-chain").innerHTML =
+                    "<p style='color: white;'>Ошибка при получении цепочки правил</p>";
 
                 return;
             }
 
+            // Разделяем рекомендации, комментарии и цепочку правил
+            let text = d.output.replace(/CLIPS>*/g, "").replace(/\r/g, "");
+            
+            document.getElementById("output").innerHTML = formatRecommendations(text);
+            document.getElementById("comments").innerHTML = formatComments(text);
+            document.getElementById("rules-chain").innerHTML = formatRulesChain(text);
+        })
+        .catch(error => {
             document.getElementById("output").innerHTML =
-                formatOutput(d.output);
+                "<div class='alert alert-danger'><strong>ОШИБКА</strong><br>" +
+                error.message + "</div>";
         });
 }
 </script>

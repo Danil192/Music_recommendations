@@ -1,1 +1,0 @@
-(printout t "CLIPS работает" crlf)
